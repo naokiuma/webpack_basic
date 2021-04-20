@@ -1,6 +1,7 @@
 const Path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { Template } = require('ejs');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 
 module.exports = {
     // モード値を production に設定すると最適化された状態で、
@@ -20,27 +21,69 @@ module.exports = {
                 use: [
                         "style-loader", //creates style nodes from JS strings
                         "css-loader", //translates CSS into CommonJS
-                        "postcss-loader",
-                        "sass-loader", // compiles Sass to CSS, using Node Sass by default
+                         // compiles Sass to CSS, using Node Sass by default
                         {
-                        loader :'html-loader',
-                        options:{
-                            minimize: false
-                        },
+                            loader :'html-loader',
+                            options:{
+                                minimize: false
+                            },
                         },
                         {
                             loader:'ejs-plain-loader'
-                        }
+                        },
+                        {
+                            loader:"postcss-loader",
+                            options:{
+                                plugins:[
+                                    require('autoprefixer')({
+                                        browserslist:[
+                                            "last 2 versions",
+                                            "ie >= 11",
+                                        ]
+                                    })
+                                ]
+                            }
+                        },
+                        {//sassをcssへ変換
+                            loader:"sass-loader",
+                            options:{
+                                //dart-sassを優先
+                                implementation:require('sass'),
+                                //sassOptions:{
+                                    // fibers を使わない場合は以下で false を指定
+                                    //fiber: require('fibers'),
+                                //},
+                                //ソースマップを有効に
+                                sourceMap:true,
+                                
+                            },
+                        },
+                        
                     ]
             }
         ]
     },
     plugins:[
-        new HtmlWebpackPlugin({
-            filename:'index.html',
-            template:'src/index.ejs',
-            minify: false,
-        })
+        new MiniCssExtractPlugin({
+            //抽出するcssのファイル名
+            filename:style.css
+
+        }),
+        new HtmlWebpackPlugin(//ページを追加していく
+            [
+            {
+                filename:'index.html',
+                template:'src/index.ejs',
+                minify: false,
+            },
+            {
+                filename:'about.html',
+                template:'src/about.ejs',
+                minify: false,
+            }
+            
+            ]
+        )
     ],
     //ローカル開発環境を起動
     devServer: {
